@@ -1,4 +1,4 @@
-from flask import Flask,render_template,redirect,request
+from flask import Flask,render_template,redirect,request, Response
 import pandas as pd
 import re
 from ftfy import fix_text
@@ -7,19 +7,28 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.neighbors import NearestNeighbors
 from spacy.matcher import Matcher
 import spacy
-
+##############################################################################
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
 from io import BytesIO
+#####################################################################################
+import pymongo
+import json
 
-
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.converter import TextConverter
-from pdfminer.layout import LAParams
-from pdfminer.pdfpage import PDFPage
-from io import BytesIO
+#######################################################################
+#connecting to MongoDb
+try:
+    mongo=pymongo.MongoClient(host="localhost",
+                              port=27017,
+                              serverSelectionTimeoutMS=1000
+                              )
+    db=mongo.student #name of the database
+    mongo.server_info() #triggers an exception if we cannot connect to db
+except:
+    print("cannot connect to db")
+########################################################################
 
 def extract_text_from_pdf(file):
     resource_manager = PDFResourceManager()
@@ -203,26 +212,47 @@ def submit_data():
         education = extract_education(text)
         education
         extracted_text["Qualification"] = education
+        
+        #college/institution
+        sub_patterns = ['[A-Z][a-z]* College of Engineering','[A-Z][a-z]* Educational Institute',
+                        'University of [A-Z][a-z]*',
+                        'Ecole [A-Z][a-z]*',
+                        'Indian Institute Of Technology-*[A-Z][a-z]',
+                        'National Institute Of Technology-*[A-Z][a-z]']
+        
+        pattern = '({})'.format('|'.join(sub_patterns))
+        matches = re.findall(pattern, text)
 
-        print(extracted_text)
+        extracted_text["Institute"] = matches
+        matches
 
-        # add phone number to the extracted text 
-        # try:
-        #     doc = Document()
-        #     with open(f.filename, 'r') as file:
-        #         # doc.add_paragraph(file.read())
-        #         # doc.save("text.docx")
-        #         # data = ResumeParser('text.docx').get_extracted_data()
-        #         file_data = parser.from_file(file)
-        #         text = file_data['content']
-                
-        # except:
-        #     data = ResumeParser(f.filename).get_extracted_data()
-        # resume=data['skills']
-        # print(type(resume))
-    
-        # skills=[]
-        # skills.append(' '.join(word for word in resume))
+        # for experience
+        sub_patterns = ['[A-Z][a-z]* [A-Z][a-z]* Private Limited','[A-Z][a-z]* [A-Z][a-z]* Pvt. Ltd.','[A-Z][a-z]* [A-Z][a-z]* Inc.', '[A-Z][a-z]* LLC',
+                ]
+        pattern = '({})'.format('|'.join(sub_patterns))
+        Exp = re.findall(pattern, text)
+        extracted_text["Experience"] = Exp
+        # print(extracted_text)
+
+        ################################################
+        # adding users with their data to mongodb
+        try:
+            user={"name":f"{extracted_text['Name']}",
+                  "contact":f"{extracted_text['Phone Number']}",
+                   "email":f"{extracted_text['E-Mail']}",
+                    "skills":f"{extracted_text['skills']}",
+                    "education":f"{extracted_text['Qualification']}",
+                    "University":f"{extracted_text['Institute']}",
+                    "experience":f"{extracted_text['Experience']}"
+                  }
+            dbResponse=db.users.insert_one(user)
+            print(dbResponse.inserted_id)
+             # return Response(response=json.dumps({"message":"user created","id":f"{dbResponse.inserted_id}"}),status=200,mimetype="application/json")
+        except Exception as ex:
+            print("******************")
+            print(ex)
+
+       
         org_name_clean = extracted_text['skills']
         
         def ngrams(string, n=3):
@@ -256,7 +286,7 @@ def submit_data():
         unique_org = list(unique_org)
         matches = []
         for i,j in enumerate(indices):
-            dist=round(distances[i][0],2)
+            dist=round(distances[i][0],2) 
   
             temp = [dist]
             matches.append(temp)
@@ -276,7 +306,5 @@ def submit_data():
         
         
         
-if __name__ =="__main__":
-    
-    
-    app.run()
+if __name__ =="__main__":    
+    app.run(port=80,debug=True)
