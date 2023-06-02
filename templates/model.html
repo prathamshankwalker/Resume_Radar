@@ -1,35 +1,90 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Home page</title>
-	
-		<style>
-.page th {
-  
-    background-color: #add8e6;
-    color: white;
-}
+	<title>Resume Radar</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			background-color: #f1f1f1;
+			margin: 0;
+			padding: 0;
+		}
 
-</style>
+		.navbar {
+			background-color: #333;
+			color: #fff;
+			padding: 10px;
+		}
+
+		.navbar h1 {
+			margin: 0;
+			padding: 0;
+			font-size: 24px;
+			font-weight: bold;
+			text-align: center;
+		}
+
+		.container {
+			margin: 20px auto;
+			padding: 20px;
+			width: 80%;
+			max-width: 800px;
+			box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+			background-color: #fff;
+		}
+
+		h1 {
+			text-align: center;
+			margin-top: 40px;
+		}
+
+		form {
+			text-align: center;
+			margin-top: 20px;
+		}
+
+		.page {
+			margin-top: 20px;
+		}
+
+		.page table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-top: 20px;
+		}
+
+		.page th {
+			background-color: #333;
+			color: #fff;
+			padding: 10px;
+			text-align: left;
+		}
+
+		.page td {
+			padding: 10px;
+			border-bottom: 1px solid #dddddd;
+		}
+	</style>
 </head>
 <body>
-	<h1>Upload your resume</h1>
+	<div class="navbar">
+		<h1>Resume Radar</h1>
+	</div>
 
-	<form method="POST" action="/submit" enctype="multipart/form-data">
-	
-	<input type="file" name="userfile">
-	<input type="submit">
-	</form>
+	<div class="container">
+		<h1>Upload your resume</h1>
 
+		<form method="POST" action="/submit" enctype="multipart/form-data">
+			<input type="file" name="userfile">
+			<input type="submit">
+		</form>
 
-
-	<div class=page>
- 		<h1>Suggested jobs</h1>
-  		{% for table in tables %}
-    	
-    	{{ table|safe }}
-  		{% endfor %}
+		<div class="page">
+			<h1>Suggested jobs</h1>
+			{% for table in tables %}
+				{{ table|safe }}
+			{% endfor %}
+		</div>
 	</div>
 </body>
-
 </html>
