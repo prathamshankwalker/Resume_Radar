@@ -293,14 +293,14 @@ def submit_data():
         matches = pd.DataFrame(matches, columns=['Match confidence'])
         df['match']=matches['Match confidence']
         df1=df.sort_values('match')
-        df2=df1[['Position', 'Company','Location']].head(10).reset_index()
+        df2=df1[['Position', 'Company','Location','url']].head(10).reset_index()
         
         
         
         
         
     #return  'nothing' 
-    return render_template('model.html',tables=[df2.to_html(classes='job')],titles=['na','Job'])
+    return render_template('model.html',tables=[df2.to_html(classes='job',render_links=True)],titles=['na','Job'])
         
         
         
