@@ -20,3 +20,22 @@ Before you begin, ensure you have met the following requirements:
 ```bash
 git clone https://github.com/yourusername/your-repo.git
 cd your-repo
+```
+
+2. Create a virtual environment (recommended) and activate it:
+
+```bash
+python -m venv venv
+source venv/bin/activate
+```
+
+3. Install the required Python packages:
+```bash
+pip install -r requirements.txt
+```
+
+4. Run
+```bash
+python app.py
+```
+
